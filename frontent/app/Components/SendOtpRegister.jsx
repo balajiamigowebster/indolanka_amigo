@@ -1633,6 +1633,40 @@ export default function SendOtpRegister() {
     setIsCalendarOpen(false);
   };
 
+  const handleDobManualChange = (e) => {
+    const value = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      dob: value,
+    }));
+
+    if (!value) {
+      setDobDate(null);
+      setFormData((prev) => ({ ...prev, age: "" }));
+      return;
+    }
+
+    const parsedDate = new Date(value);
+    if (!isNaN(parsedDate.getTime()) && value.length >= 10) {
+      const ageCheck = isAgeValid(parsedDate, 18, 60);
+      if (ageCheck.valid) {
+        setDobDate(parsedDate);
+        setFormData((prev) => ({
+          ...prev,
+          dob: value,
+          age: ageCheck.age ? ageCheck.age.toString() : calculateAge(parsedDate),
+        }));
+      } else {
+        setDobDate(parsedDate);
+        if (ageCheck.reason === "min") {
+          toast.error("You must be at least 18 years old to register.");
+        } else if (ageCheck.reason === "max") {
+          toast.error("The maximum age limit is 60 years for both male and female.");
+        }
+      }
+    }
+  };
+
   // 🔴 CORE UPDATE: Validation Logic for Step 1
   const validateForm = () => {
     let isValid = true;
@@ -2257,8 +2291,12 @@ export default function SendOtpRegister() {
               //   );
               // }
 
-              // 2. DATE PICKER
+              // 2. DATE PICKER WITH MANUAL TYPING & CALENDAR
               if (field.type === "date") {
+                const currentYear = new Date().getFullYear();
+                const minDateStr = `${currentYear - 60}-01-01`;
+                const maxDateStr = `${currentYear - 18}-12-31`;
+
                 return (
                   <div key={field.label} className="flex flex-col lg:flex-row">
                     <div className="lg:flex-row w-full lg:flex lg:center lg:gap-10">
@@ -2266,38 +2304,48 @@ export default function SendOtpRegister() {
                         <Label className="text-sm py-2">{field.label}</Label>
                       </div>
                       <div className="lg:w-[900px]">
-                        <Popover
-                          open={isCalendarOpen}
-                          onOpenChange={setIsCalendarOpen}
-                          className=""
-                        >
-                          <PopoverTrigger
-                            className="w-full border-black rounded"
-                            asChild
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="date"
+                            name={fieldName}
+                            min={minDateStr}
+                            max={maxDateStr}
+                            value={formData?.[fieldName] || ""}
+                            onChange={handleDobManualChange}
+                            className="w-full border-black rounded py-[15px] bg-white text-base"
+                            placeholder="YYYY-MM-DD"
+                          />
+                          <Popover
+                            open={isCalendarOpen}
+                            onOpenChange={setIsCalendarOpen}
                           >
-                            <Button
-                              variant="outline"
-                              className="justify-start py-[15px]"
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {dobDate
-                                ? format(dobDate, "PPP")
-                                : "Select Date of Birth"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0 " align="start">
-                            <Calendar
-                              selected={dobDate}
-                              onSelect={handleDateSelect}
-                              mode="single"
-                              captionLayout="dropdown"
-                              fromYear={new Date().getFullYear() - 61}
-                              toYear={new Date().getFullYear() - 18}
-                              startMonth={new Date(new Date().getFullYear() - 61, 0)}
-                              endMonth={new Date(new Date().getFullYear() - 18, 11)}
-                            />
-                          </PopoverContent>
-                        </Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="py-[15px] px-3 border-black rounded shrink-0"
+                                title="Open Calendar"
+                              >
+                                <CalendarIcon className="h-5 w-5" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                              <Calendar
+                                selected={dobDate}
+                                onSelect={handleDateSelect}
+                                mode="single"
+                                captionLayout="dropdown"
+                                fromYear={currentYear - 65}
+                                toYear={currentYear - 18}
+                                startMonth={new Date(currentYear - 65, 0)}
+                                endMonth={new Date(currentYear - 18, 11)}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Type date directly (YYYY-MM-DD) or click calendar to pick. Age limit: 18 - 60 years.
+                        </p>
                       </div>
                     </div>
                   </div>
