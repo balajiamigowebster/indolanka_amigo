@@ -46,8 +46,24 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// ✅ Fix: Strip cPanel subpath prefix (e.g. /indolankamatrimony_working) if forwarded by cPanel reverse proxy
+app.use((req, res, next) => {
+  const apiIndex = req.url.indexOf("/api/");
+  const uploadsIndex = req.url.indexOf("/uploads/");
+  if (apiIndex > 0) {
+    req.url = req.url.substring(apiIndex);
+  } else if (uploadsIndex > 0) {
+    req.url = req.url.substring(uploadsIndex);
+  } else if (req.url.startsWith("/indolankamatrimony_working")) {
+    req.url = req.url.replace(/^\/indolankamatrimony_working/, "") || "/";
+  }
+  next();
+});
+
 // static folder -> frontend access for uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/indolankamatrimony_working/uploads", express.static(path.join(__dirname, "uploads")));
+
 (async () => {
   try {
     await sequelize.authenticate();
@@ -59,10 +75,23 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
   }
 })();
 
+// Health check endpoint
+app.get("/", (req, res) => res.json({ status: "ok", message: "Indolanka Backend Running" }));
+app.get("/api", (req, res) => res.json({ status: "ok", message: "Indolanka API Running" }));
+app.get("/indolankamatrimony_working", (req, res) => res.json({ status: "ok", message: "Indolanka Backend Running" }));
+app.get("/indolankamatrimony_working/api", (req, res) => res.json({ status: "ok", message: "Indolanka API Running" }));
+
 app.use("/api/profile", profileRoutes);
+app.use("/indolankamatrimony_working/api/profile", profileRoutes);
+
 app.use("/api/contact", contactRoutes);
+app.use("/indolankamatrimony_working/api/contact", contactRoutes);
+
 app.use("/api/admin", adminRoutes); // Base path /api/admin
+app.use("/indolankamatrimony_working/api/admin", adminRoutes);
+
 app.use("/api/adminAuth", adminAuthRoutes);
+app.use("/indolankamatrimony_working/api/adminAuth", adminAuthRoutes);
 
 // only Cpanel hosting purpose using steps
 
