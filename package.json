@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "build": "npm --prefix frontent run build",
+    "build:admin": "npm --prefix Admin run build",
+    "build:frontend": "npm --prefix frontent run build",
     "dev:backend": "npm --prefix backend run dev",
     "dev:admin": "npm --prefix Admin run dev",
     "dev:frontend": "npm --prefix frontent run dev",

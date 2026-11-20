@@ -1697,6 +1697,8 @@ const EditProfile = () => {
                             captionLayout="dropdown"
                             fromYear={new Date().getFullYear() - 61}
                             toYear={new Date().getFullYear() - 18}
+                            startMonth={new Date(new Date().getFullYear() - 61, 0)}
+                            endMonth={new Date(new Date().getFullYear() - 18, 11)}
                           />
                         </PopoverContent>
                       </Popover>
