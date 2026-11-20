@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/drawer";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const ageOptions = Array.from({ length: 33 }, (_, i) => 18 + i);
+const ageOptions = Array.from({ length: 43 }, (_, i) => 18 + i); // 18 to 60
 const heightCmOptions = Array.from({ length: 122 }, (_, i) => 100 + i); // 100cm to 220cm (121 options)
 
 const heightOptions = [

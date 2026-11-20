@@ -95,6 +95,17 @@ exports.registerProfile = async (req, res) => {
       education = education.join(", ");
     }
 
+    // ✅ Age validation: Age limit is 60 for both male and female (18 - 60)
+    if (age) {
+      const ageNum = Number(age);
+      if (isNaN(ageNum) || ageNum < 18 || ageNum > 60) {
+        return res.status(400).json({
+          success: false,
+          message: "Age must be between 18 and 60 years for both male and female.",
+        });
+      }
+    }
+
     const now = new Date();
     const created_day = now.getDate().toString().padStart(2, "0");
     const created_month = (now.getMonth() + 1).toString().padStart(2, "0");
@@ -421,6 +432,17 @@ exports.sendOtp = async (req, res) => {
         success: false,
         message: "Email and Phone number are required.",
       });
+    }
+
+    // ✅ Age validation: Age limit is 60 for both male and female (18 - 60)
+    if (profileData.age) {
+      const ageNum = Number(profileData.age);
+      if (isNaN(ageNum) || ageNum < 18 || ageNum > 60) {
+        return res.status(400).json({
+          success: false,
+          message: "Age must be between 18 and 60 years for both male and female.",
+        });
+      }
     }
 
     // Handle array fields like 'education'

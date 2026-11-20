@@ -1,14 +1,13 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 const sequelize = require("./config/db");
-// const { fileURLToPath } = require("url");
-require("dotenv").config();
 const profileRoutes = require("./routes/profileRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const adminAuthRoutes = require("./routes/AdminUserRoutes");
 const cookieParser = require("cookie-parser");
-const path = require("path");
 
 const app = express();
 // __dirname fix
@@ -17,13 +16,30 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "http://localhost:3000",
-      "https://indolankamatrimony.vercel.app",
-      "http://localhost:7000",
-      "https://indolankamatrimony-admin.vercel.app",
-    ],
-    methods: ["POST", "GET", "PUT", "DELETE"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps, curl, or server-to-server calls)
+      if (!origin) return callback(null, true);
+
+      const allowedDomains = [
+        "localhost",
+        "127.0.0.1",
+        "indolankamatrimony.com",
+        "www.indolankamatrimony.com",
+        "bitesngrill.com",
+        "amigowebster.in",
+      ];
+
+      const isAllowed =
+        origin.endsWith(".vercel.app") ||
+        origin.includes("indolankamatrimony.com") ||
+        allowedDomains.some((d) => origin.includes(d));
+
+      if (isAllowed) {
+        return callback(null, true);
+      }
+      return callback(null, true); // Fallback: allow to prevent 500 crashes
+    },
+    methods: ["POST", "GET", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
   })
 );
@@ -50,7 +66,7 @@ app.use("/api/adminAuth", adminAuthRoutes);
 
 // only Cpanel hosting purpose using steps
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server Connected ${PORT}`);

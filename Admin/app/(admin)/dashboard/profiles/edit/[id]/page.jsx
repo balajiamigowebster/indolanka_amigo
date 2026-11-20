@@ -1248,24 +1248,19 @@ const EditProfile = () => {
 
   // 📅 Date Select Handler
 
-  // 🎯 புதுப்பிப்பு 1: 18 வயது சரிபார்ப்புக்கு ஒரு புதிய ஃபங்ஷன்
-  const isAgeValid = (dob, minAge = 18) => {
-    if (!dob) return true;
-    const now = new Date();
-    const birthDate = new Date(dob);
-
-    // 18 வயது ஆவதற்குத் தேவையான தேதி
-    const requiredDate = new Date(
-      birthDate.getFullYear() + minAge,
-      birthDate.getMonth(),
-      birthDate.getDate()
-    );
-
-    console.log(requiredDate);
-    console.log(now);
-
-    // தேவையான தேதி, இன்றைய தேதியை விட குறைவாகவோ அல்லது சமமாகவோ இருக்க வேண்டும்.
-    return requiredDate <= now;
+  // 🎯 18 முதல் 60 வயது சரிபார்ப்புக்கு ஒரு புதிய ஃபங்ஷன்
+  const isAgeValid = (dob, minAge = 18, maxAge = 60) => {
+    if (!dob) return { valid: true };
+    const calculatedAge = calculateAge(dob);
+    if (!calculatedAge) return { valid: false, reason: "invalid" };
+    const age = Number(calculatedAge);
+    if (age < minAge) {
+      return { valid: false, reason: "min", age };
+    }
+    if (age > maxAge) {
+      return { valid: false, reason: "max", age };
+    }
+    return { valid: true, age };
   };
 
   // const handleDateSelect = (date) => {
@@ -1299,10 +1294,16 @@ const EditProfile = () => {
   // };
 
   const handleDateSelect = (date) => {
-    if (!isAgeValid(date, 18)) {
-      toast.error("You must be at least 18 years old to register.");
+    const ageCheck = isAgeValid(date, 18, 60);
+    if (!ageCheck.valid) {
+      if (ageCheck.reason === "min") {
+        toast.error("You must be at least 18 years old to register.");
+      } else if (ageCheck.reason === "max") {
+        toast.error("The maximum age limit is 60 years for both male and female.");
+      } else {
+        toast.error("Please select a valid date of birth.");
+      }
 
-      // 18 வயதுக்குக் குறைவாக இருந்தால், DOB, age state-களை செட் செய்யாமல், Calendar-ஐ மூடிவிடவும்.
       setDobDate(null);
       setFormData((prev) => ({
         ...prev,
@@ -1641,8 +1642,8 @@ const EditProfile = () => {
                             onSelect={handleDateSelect} // Handle date selection
                             mode="single"
                             captionLayout="dropdown"
-                            fromYear={1950}
-                            toYear={new Date().getFullYear()} // Set to current year
+                            fromYear={new Date().getFullYear() - 61}
+                            toYear={new Date().getFullYear() - 18}
                           />
                         </PopoverContent>
                       </Popover>

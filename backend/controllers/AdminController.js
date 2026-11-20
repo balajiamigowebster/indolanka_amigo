@@ -418,6 +418,17 @@ exports.updateProfile = async (req, res) => {
       });
     }
 
+    // ✅ Age validation: Age limit is 60 for both male and female (18 - 60)
+    if (updateData.age) {
+      const ageNum = Number(updateData.age);
+      if (isNaN(ageNum) || ageNum < 18 || ageNum > 60) {
+        return res.status(400).json({
+          success: false,
+          message: "Age must be between 18 and 60 years for both male and female.",
+        });
+      }
+    }
+
     // console.log(typeof updateData.education); // Debug purposes
     // console.log(updateData.education);        // Debug purposes
 

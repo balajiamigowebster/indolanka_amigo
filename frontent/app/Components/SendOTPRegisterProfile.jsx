@@ -1276,7 +1276,43 @@ export default function SendOtpRegisterProfile() {
     }
   };
 
+  // 🎯 18 முதல் 60 வயது சரிபார்ப்புக்கு ஒரு புதிய ஃபங்ஷன்
+  const isAgeValid = (dob, minAge = 18, maxAge = 60) => {
+    if (!dob) return { valid: true };
+    const calculatedAge = calculateAge(dob);
+    if (!calculatedAge) return { valid: false, reason: "invalid" };
+    const age = Number(calculatedAge);
+    if (age < minAge) {
+      return { valid: false, reason: "min", age };
+    }
+    if (age > maxAge) {
+      return { valid: false, reason: "max", age };
+    }
+    return { valid: true, age };
+  };
+
   const handleDateSelect = (date) => {
+    const ageCheck = isAgeValid(date, 18, 60);
+    if (!ageCheck.valid) {
+      if (ageCheck.reason === "min") {
+        toast.error("You must be at least 18 years old to register.");
+      } else if (ageCheck.reason === "max") {
+        toast.error("The maximum age limit is 60 years for both male and female.");
+      } else {
+        toast.error("Please select a valid date of birth.");
+      }
+
+      setDobDate(null);
+      setFormData((prev) => ({
+        ...prev,
+        dob: "",
+        age: "",
+      }));
+
+      setIsCalendarOpen(false);
+      return;
+    }
+
     setDobDate(date); // Date format for backend (as per first code)
     const formattedDate = format(date, "yyyy-MM-dd");
 
@@ -1322,6 +1358,16 @@ export default function SendOtpRegisterProfile() {
         if (!EMAIL_REGEX.test(value)) {
           newValidation[field] =
             "Please enter a valid email address (e.g., user@gmail.com).";
+          isValid = false;
+        }
+      }
+
+      // ✅ Age Validation (Between 18 and 60 years)
+      if (field === "age") {
+        const ageNum = Number(formData.age);
+        if (isNaN(ageNum) || ageNum < 18 || ageNum > 60) {
+          newValidation[field] =
+            "Age must be between 18 and 60 years for both male and female.";
           isValid = false;
         }
       }
@@ -1609,8 +1655,8 @@ export default function SendOtpRegisterProfile() {
                         onSelect={handleDateSelect}
                         mode="single"
                         captionLayout="dropdown"
-                        fromYear={1950}
-                        toYear={2025}
+                        fromYear={new Date().getFullYear() - 61}
+                        toYear={new Date().getFullYear() - 18}
                       />
                     </PopoverContent>
                   </Popover>
